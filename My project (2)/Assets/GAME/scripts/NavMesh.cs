@@ -7,28 +7,50 @@ using JetBrains.Annotations;
 public class NavMesh : MonoBehaviour
 {
     public Transform player;
+    public float rangoPlayer = 15f;
     public NavMeshAgent agent;
-    public Transform startPoint;
+
+    public Transform[] waypoints;
+    public float waypointDistance = 1f;
+    public int currentWaypoint = 0;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+
+        if (waypoints.Length > 0)
+        {
+            agent.SetDestination(waypoints[currentWaypoint].position);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         float distancia = Vector3.Distance(transform.position, player.position);
-        Debug.Log(distancia);
 
-        if (distancia < 20f)
+        if (distancia < rangoPlayer)
         {
-            agent.destination = player.position;
+            agent.SetDestination(player.position);
         }
         else
         {
-            agent.destination = startPoint.position;
+            if(!agent.pathPending && agent.remainingDistance <= waypointDistance)
+            {
+                GoToNextWaypoint();
+            }
         }
 
+    }
+
+    void GoToNextWaypoint()
+    {
+        currentWaypoint++;
+
+        if (currentWaypoint >= waypoints.Length)
+        {
+            currentWaypoint = 0;
+        }
+        agent.SetDestination(waypoints[currentWaypoint].position);
     }
 }
